@@ -28,10 +28,13 @@ if ($result->num_rows > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Happy Herbivore Kiosk</title>
     <?php
     $verStyle = @filemtime(__DIR__ . '/assets/css/style.css') ?: time();
     $verIdleJs = @filemtime(__DIR__ . '/assets/js/idle.js') ?: time();
+    $verResponsiveJs = @filemtime(__DIR__ . '/assets/js/responsive.js') ?: time();
     $logoPath = __DIR__ . '/logos/logo-images/logo happy herbivore.webp';
     $verLogo = @filemtime($logoPath) ?: time();
     ?>
@@ -84,7 +87,7 @@ if ($result->num_rows > 0) {
         <div class="overlay">
             <div class="logo-container">
                 <div class="logo-circle">
-                    <img src="logos/logo-images/logo happy herbivore.webp?v=<?php echo $verLogo; ?>" alt="Happy Herbivore Logo" class="main-logo">
+                    <img src="logos/logo-images/<?php echo rawurlencode('logo happy herbivore.webp'); ?>?v=<?php echo $verLogo; ?>" alt="Happy Herbivore Logo" class="main-logo">
                 </div>
             </div>
             <div class="cta-container">
@@ -94,20 +97,24 @@ if ($result->num_rows > 0) {
             <!-- Animated dish showcase panel (loop) -->
             <div class="dish-panel fade-in">
                 <div class="dish-track">
-                    <?php 
-                    $doubledSlides = array_merge($slides, $slides); 
-                    foreach ($doubledSlides as $slide): 
+                    <?php
+                    $doubledSlides = array_merge($slides, $slides);
+                    foreach ($doubledSlides as $slide):
                     ?>
                         <?php
                         $sFile = $slide['filename'];
                         $sPath = __DIR__ . '/menu-images/' . $sFile;
-                        $sVer = @filemtime($sPath) ?: time();
+                        $sVer = @filemtime($sPath);
+                        if ($sVer === false) {
+                            $sVer = time();
+                        }
                         $sUrl = 'menu-images/' . rawurlencode($sFile) . '?v=' . $sVer;
                         ?>
-                        <div class="dish-card" 
-                             data-name-nl="<?php echo htmlspecialchars($slide['name']); ?>"
-                             data-name-en="<?php echo htmlspecialchars($slide['name_en'] ?: $slide['name']); ?>">
-                            <div class="dish-thumb" style="background-image: url('<?php echo $sUrl; ?>')"></div>
+                        <div class="dish-card"
+                            data-name-nl="<?php echo htmlspecialchars($slide['name']); ?>"
+                            data-name-en="<?php echo htmlspecialchars($slide['name_en'] ?: $slide['name']); ?>"
+                            data-debug-url="<?php echo htmlspecialchars($sUrl); ?>">
+                            <img src="<?php echo $sUrl; ?>" alt="<?php echo htmlspecialchars($slide['name']); ?>" class="dish-thumb">
                             <div class="dish-info">
                                 <div class="dish-name"><?php echo htmlspecialchars($slide['name']); ?></div>
                                 <div class="dish-meta">
@@ -130,7 +137,7 @@ if ($result->num_rows > 0) {
                 b.classList.remove('active');
                 if (b.innerText === lang) b.classList.add('active');
             });
-            
+
             const texts = {
                 'NL': 'Tik om te bestellen',
                 'EN': 'Touch to order'
@@ -150,6 +157,7 @@ if ($result->num_rows > 0) {
             window.location.href = 'mode.php';
         });
     </script>
+    <script src="assets/js/responsive.js?v=<?php echo $verResponsiveJs; ?>"></script>
 </body>
 
 </html>

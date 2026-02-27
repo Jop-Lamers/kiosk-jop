@@ -7,12 +7,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Select Order Mode</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <?php
     $verStyle = @filemtime(__DIR__ . '/assets/css/style.css') ?: time();
+    $verResponsiveJs = @filemtime(__DIR__ . '/assets/js/responsive.js') ?: time();
     $logoPath = __DIR__ . '/logos/logo-images/logo happy herbivore.webp';
     $verLogo = @filemtime($logoPath) ?: time();
     ?>
@@ -178,12 +181,12 @@
                             <circle cx="32" cy="35" r="18" stroke="currentColor" stroke-width="4" />
                             <circle cx="32" cy="35" r="11" stroke="currentColor" stroke-width="4" opacity="0.3" />
                             <!-- Fork (Left) -->
-                            <path d="M8 50v-10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                            <path d="M4 26v6c0 2.2 1.8 4 4 4s4-1.8 4-4v-6" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8 26v6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M8 50v-10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                            <path d="M4 26v6c0 2.2 1.8 4 4 4s4-1.8 4-4v-6" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M8 26v6" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                             <!-- Knife (Right) -->
-                            <path d="M56 50v-10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                            <path d="M56 40c0-12-4-15-4-15v15h4" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M56 50v-10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                            <path d="M56 40c0-12-4-15-4-15v15h4" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
                     <p class="label" id="eat-in-label">Hier eten</p>
@@ -212,12 +215,26 @@
             localStorage.setItem('kiosk_lang', lang);
             document.getElementById('lang-nl').classList.toggle('active', lang === 'NL');
             document.getElementById('lang-en').classList.toggle('active', lang === 'EN');
-            
+
             const texts = {
-                'NL': { title: 'Hoe wilt u genieten?', eatin: 'Hier eten', eatinsub: 'Wij serveren het direct.', takeaway: 'Meenemen', takeawaysub: 'Handig voor onderweg.', back: 'Terug' },
-                'EN': { title: 'How would you like to eat?', eatin: 'Eat In', eatinsub: 'We serve it fresh here.', takeaway: 'Take Away', takeawaysub: 'Convenient for on the go.', back: 'Back' }
+                'NL': {
+                    title: 'Hoe wilt u genieten?',
+                    eatin: 'Hier eten',
+                    eatinsub: 'Wij serveren het direct.',
+                    takeaway: 'Meenemen',
+                    takeawaysub: 'Handig voor onderweg.',
+                    back: 'Terug'
+                },
+                'EN': {
+                    title: 'How would you like to eat?',
+                    eatin: 'Eat In',
+                    eatinsub: 'We serve it fresh here.',
+                    takeaway: 'Take Away',
+                    takeawaysub: 'Convenient for on the go.',
+                    back: 'Back'
+                }
             };
-            
+
             const t = texts[lang];
             document.getElementById('mode-title').innerText = t.title;
             document.getElementById('eat-in-label').innerText = t.eatin;
@@ -239,5 +256,7 @@
             window.location.href = 'index.php';
         }
     </script>
+    <script src="assets/js/responsive.js?v=<?php echo $verResponsiveJs; ?>"></script>
 </body>
+
 </html>

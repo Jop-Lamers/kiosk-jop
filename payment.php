@@ -1,11 +1,15 @@
 <?php
 require_once 'config/db.php';
+$verResponsiveJs = @filemtime(__DIR__ . '/assets/js/responsive.js') ?: time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Payment Simulation - Happy Herbivore</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
@@ -19,6 +23,7 @@ require_once 'config/db.php';
             backdrop-filter: blur(10px);
             border: 2px solid var(--color-light-green);
         }
+
         .spinner {
             width: 80px;
             height: 80px;
@@ -28,7 +33,17 @@ require_once 'config/db.php';
             animation: spin 1s linear infinite;
             margin: 2rem auto;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         .success-icon {
             font-size: 80px;
             color: var(--color-green);
@@ -36,6 +51,7 @@ require_once 'config/db.php';
         }
     </style>
 </head>
+
 <body>
     <div class="overlay">
         <div id="charity-step" class="payment-container fade-in">
@@ -74,7 +90,7 @@ require_once 'config/db.php';
                 document.getElementById('pay-spinner').style.display = 'none';
                 document.getElementById('pay-success').style.display = 'block';
                 document.getElementById('pay-msg').innerText = 'Uw bestelling wordt voorbereid.';
-                
+
                 // Clear cart
                 localStorage.removeItem('kiosk_cart');
 
@@ -84,5 +100,7 @@ require_once 'config/db.php';
             }, 5000);
         }
     </script>
+    <script src="assets/js/responsive.js?v=<?php echo $verResponsiveJs; ?>"></script>
 </body>
+
 </html>

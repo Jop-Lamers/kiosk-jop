@@ -2,12 +2,16 @@
 require_once 'config/db.php';
 $verStyle = @filemtime(__DIR__ . '/assets/css/style.css') ?: time();
 $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
+$verResponsiveJs = @filemtime(__DIR__ . '/assets/js/responsive.js') ?: time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Checkout - Happy Herbivore</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo $verStyle; ?>">
@@ -43,7 +47,7 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
             background: white;
             border-radius: 32px;
             padding: 3rem;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
         }
 
         .review-title {
@@ -112,7 +116,7 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
         .type-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border: 2px solid white;
             border-radius: 20px;
             padding: 0.5rem;
@@ -134,14 +138,14 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
         .type-btn.active {
             background: white;
             color: var(--color-dark-blue);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .total-box {
             background: white;
             border-radius: 32px;
             padding: 3rem;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
 
         .total-row {
@@ -252,6 +256,7 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
         }
     </style>
 </head>
+
 <body class="menu-mode" style="background: var(--color-dark-blue); height: auto; overflow: auto;">
 
     <div class="checkout-container">
@@ -263,7 +268,11 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
         <div class="checkout-grid">
             <div class="review-panel">
                 <div class="review-title">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
                     Uw Mandje
                 </div>
                 <div id="checkout-items-list">
@@ -285,7 +294,10 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
                     <button class="pay-btn" onclick="startPayment()">NU BETALEN</button>
                 </div>
                 <a href="menu.php" class="back-btn">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
                     Terug naar het menu
                 </a>
             </div>
@@ -303,10 +315,12 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
             </div>
             <div class="payment-status">Volg de instructies op de pinautomaat...</div>
         </div>
-        
+
         <div id="success-view" class="success-screen hidden">
             <div class="success-icon-wrapper">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
             </div>
             <h2 style="font-size: 3rem;">Bedankt voor uw bestelling!</h2>
             <p style="font-size: 1.5rem; opacity: 0.8;">Uw bestelnummer is:</p>
@@ -335,9 +349,9 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
                 total += item.price * item.quantity;
                 const div = document.createElement('div');
                 div.className = 'checkout-item';
-                
+
                 const extras = item.extras ? item.extras.map(e => e.name).join(', ') : '';
-                
+
                 div.innerHTML = `
                     <div class="checkout-item-info">
                         <h4>${item.name}</h4>
@@ -360,19 +374,19 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
 
         async function startPayment() {
             document.getElementById('payment-view').classList.remove('hidden');
-            
+
             // Mock payment delay
             setTimeout(async () => {
                 document.getElementById('payment-instruction').classList.add('hidden');
                 document.getElementById('success-view').classList.remove('hidden');
-                
+
                 // Generate order number
                 const orderNum = Math.floor(Math.random() * 90) + 10;
                 document.getElementById('order-num-display').innerText = '#' + (orderNum < 100 ? '0' + orderNum : orderNum);
 
                 // Save to DB via fetch
                 const total = cart.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-                
+
                 try {
                     await fetch('api/save_order.php', {
                         method: 'POST',
@@ -385,12 +399,16 @@ $verMenuCss = @filemtime(__DIR__ . '/assets/css/menu.css') ?: time();
                     });
                     // Clear cart
                     localStorage.removeItem('kiosk_cart');
-                } catch(e) { console.error(e); }
+                } catch (e) {
+                    console.error(e);
+                }
 
             }, 3000);
         }
 
         renderCheckout();
     </script>
+    <script src="assets/js/responsive.js?v=<?php echo $verResponsiveJs; ?>"></script>
 </body>
+
 </html>
