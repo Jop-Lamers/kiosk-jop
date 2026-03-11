@@ -181,8 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Modal Logic
   const modal = document.getElementById("custom-modal");
   let currentProduct = null;
-  let currentUpsell = null;
-  let upsellActive = false;
 
   // Dynamic Customization Rules
   const customizationRules = [
@@ -316,16 +314,174 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
+  function getExclusiveOptionMeta(optionName) {
+    if (!optionName) return null;
+
+    let normalized = optionName
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\(.*?\)/g, "")
+      .replace(/[^a-z0-9\s\/-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    let type = null;
+
+    if (/^extra\b/.test(normalized)) {
+      type = "extra";
+      normalized = normalized.replace(/^extra\s+/, "").replace(/^shot\s+/, "");
+    } else if (/^(geen|no)\b/.test(normalized)) {
+      type = "no";
+      normalized = normalized.replace(/^(geen|no)\s+/, "");
+    } else {
+      return null;
+    }
+
+    const base = (normalized.split("/")[0] || "")
+      .replace(/[^a-z0-9\s-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!base) return null;
+
+    const key = base.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+    if (!key) return null;
+
+    return { key, type };
+  }
+
+  function handleExtraOptionChange(event) {
+    const changedInput = event.target;
+
+    if (changedInput.checked) {
+      const key = changedInput.dataset.exclusiveKey;
+      const type = changedInput.dataset.exclusiveType;
+
+      if (key && type) {
+        document
+          .querySelectorAll(`.extra-item input[data-exclusive-key="${key}"]`)
+          .forEach((input) => {
+            if (
+              input !== changedInput &&
+              input.dataset.exclusiveType &&
+              input.dataset.exclusiveType !== type
+            ) {
+              input.checked = false;
+            }
+          });
+      }
+    }
+
+    enforceExclusiveSelections(changedInput);
+
+    updateModalTotal();
+  }
+
+  function enforceExclusiveSelections(preferredInput = null) {
+    const checkedInputs = Array.from(
+      document.querySelectorAll(".extra-item input:checked"),
+    );
+
+    const groupedByKey = new Map();
+
+    checkedInputs.forEach((input) => {
+      const key = input.dataset.exclusiveKey;
+      if (!key) return;
+
+      if (!groupedByKey.has(key)) {
+        groupedByKey.set(key, []);
+      }
+
+      groupedByKey.get(key).push(input);
+    });
+
+    groupedByKey.forEach((group) => {
+      if (group.length <= 1) return;
+
+      let keep = null;
+
+      if (preferredInput && group.includes(preferredInput)) {
+        keep = preferredInput;
+      } else {
+        keep = group.find((input) => input.dataset.exclusiveType === "no");
+      }
+
+      if (!keep) {
+        keep = group[group.length - 1];
+      }
+
+      group.forEach((input) => {
+        if (input !== keep) {
+          input.checked = false;
+        }
+      });
+    });
+
+    updateExclusiveOptionVisualState();
+  }
+
+  function updateExclusiveOptionVisualState() {
+    const allInputs = Array.from(
+      document.querySelectorAll(".extra-item input"),
+    );
+
+    allInputs.forEach((input) => {
+      const label = input.closest(".extra-item");
+      if (label) {
+        label.classList.remove("is-muted-opposite");
+      }
+    });
+
+    const selectedTypeByKey = new Map();
+
+    allInputs.forEach((input) => {
+      if (!input.checked) return;
+
+      const key = input.dataset.exclusiveKey;
+      const type = input.dataset.exclusiveType;
+
+      if (key && type) {
+        selectedTypeByKey.set(key, type);
+      }
+    });
+
+    allInputs.forEach((input) => {
+      if (input.checked) return;
+
+      const key = input.dataset.exclusiveKey;
+      const type = input.dataset.exclusiveType;
+
+      if (!key || !type) return;
+
+      const selectedType = selectedTypeByKey.get(key);
+      if (!selectedType || selectedType === type) return;
+
+      const label = input.closest(".extra-item");
+      if (label) {
+        label.classList.add("is-muted-opposite");
+      }
+    });
+  }
+
+  function getSanitizedCheckedExtras() {
+    enforceExclusiveSelections();
+
+    const extras = [];
+    document.querySelectorAll(".extra-item input:checked").forEach((input) => {
+      extras.push({
+        name: input.dataset.name,
+        price: parseFloat(input.dataset.price),
+      });
+    });
+
+    return extras;
+  }
+
   window.openCustomizer = function (id) {
     currentProduct = window.allProducts.find((p) => p.product_id == id);
     if (!currentProduct) return;
-
-    upsellActive = false;
-    currentUpsell = currentProduct.cross_sell_id
-      ? window.allProducts.find(
-          (p) => p.product_id == currentProduct.cross_sell_id,
-        )
-      : null;
 
     const lang = localStorage.getItem("kiosk_lang") || "NL";
 
@@ -397,9 +553,13 @@ document.addEventListener("DOMContentLoaded", () => {
             <input type="checkbox" data-name="${name}" data-price="${opt.price}">
             <span>${name}${priceText}</span>
           `;
-          label
-            .querySelector("input")
-            .addEventListener("change", updateModalTotal);
+          const input = label.querySelector("input");
+          const exclusiveMeta = getExclusiveOptionMeta(name);
+          if (exclusiveMeta) {
+            input.dataset.exclusiveKey = exclusiveMeta.key;
+            input.dataset.exclusiveType = exclusiveMeta.type;
+          }
+          input.addEventListener("change", handleExtraOptionChange);
 
           if (opt.price > 0) {
             extrasGrid.appendChild(label);
@@ -433,7 +593,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <input type="checkbox" data-name="${name}" data-price="${opt.price}">
         <span>${name}</span>
       `;
-      label.querySelector("input").addEventListener("change", updateModalTotal);
+      const input = label.querySelector("input");
+      const exclusiveMeta = getExclusiveOptionMeta(name);
+      if (exclusiveMeta) {
+        input.dataset.exclusiveKey = exclusiveMeta.key;
+        input.dataset.exclusiveType = exclusiveMeta.type;
+      }
+      input.addEventListener("change", handleExtraOptionChange);
       wishesGrid.appendChild(label);
       wishesCount++;
     });
@@ -455,22 +621,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-confirm-btn").innerText =
       lang === "EN" ? "Add to Order" : "Toevoegen aan bestelling";
 
-    // Setup Upsell
-    const upsellBox = document.getElementById("upsell-container");
-    if (currentUpsell) {
-      upsellBox.classList.remove("hidden");
-      document.getElementById("upsell-name").innerText =
-        currentUpsell["name" + (lang === "EN" ? "_en" : "")] ||
-        currentUpsell.name;
-      document.getElementById("upsell-price").innerText =
-        "€" + parseFloat(currentUpsell.price).toFixed(2);
-      document.getElementById("upsell-img").src =
-        window.productImages[currentUpsell.product_id];
-      updateUpsellBtnText(lang);
-    } else {
-      upsellBox.classList.add("hidden");
-    }
-
     updateModalTotal();
 
     // Reset view to customizer
@@ -485,30 +635,11 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
   };
 
-  window.toggleUpsell = function () {
-    upsellActive = !upsellActive;
-    const lang = localStorage.getItem("kiosk_lang") || "NL";
-    updateUpsellBtnText(lang);
-    updateModalTotal();
-  };
-
-  function updateUpsellBtnText(lang) {
-    const btn = document.getElementById("upsell-btn-action");
-    if (upsellActive) {
-      btn.innerText = lang === "EN" ? "Remove from deal" : "Verwijder uit deal";
-      btn.style.background = "#666";
-    } else {
-      btn.innerText = lang === "EN" ? "Add to order" : "Voeg toe voor deal";
-      btn.style.background = "var(--color-orange)";
-    }
-  }
-
   function updateModalTotal() {
     let total = parseFloat(currentProduct.price);
-    if (upsellActive) total += parseFloat(currentUpsell.price);
 
-    document.querySelectorAll(".extra-item input:checked").forEach((i) => {
-      total += parseFloat(i.dataset.price);
+    getSanitizedCheckedExtras().forEach((extra) => {
+      total += extra.price;
     });
 
     document.getElementById("modal-total-price").innerText =
@@ -521,10 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   window.confirmCustomization = function () {
-    const extras = [];
-    document.querySelectorAll(".extra-item input:checked").forEach((i) => {
-      extras.push({ name: i.dataset.name, price: parseFloat(i.dataset.price) });
-    });
+    const extras = getSanitizedCheckedExtras();
 
     // Trigger Fly Animation
     const modalImg = document.getElementById("modal-img");
@@ -535,46 +663,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addToCart(currentProduct, extras);
 
-    // Add upsell if active (from the inline version)
-    if (upsellActive && currentUpsell) {
-      addToCart(currentUpsell);
-      upsellActive = false; // Reset
-    }
-
-    // Instead of closing, show the new Upsell Screen
-    showUpsellScreen();
+    closeCustomizer();
   };
 
-  function showUpsellScreen() {
+  window.showCheckoutUpsell = function () {
     const lang = localStorage.getItem("kiosk_lang") || "NL";
     const upsellView = document.getElementById("upsell-view");
-    const customizerView = document.getElementById("customizer-view");
+    const modal = document.getElementById("custom-modal");
+    const upsellContent = upsellView.querySelector(".upsell-screen-content");
 
-    // Hide customizer, show upsell
-    customizerView.classList.add("hidden");
+    // Make sure the customizer-view is hidden and upsell-view is visible
+    document.getElementById("customizer-view").classList.add("hidden");
     upsellView.classList.remove("hidden");
-    document.querySelector(".close-modal").classList.add("hidden"); // Force choice
+    document.querySelector(".close-modal").classList.remove("hidden");
+    document.querySelector(".close-modal").onclick = function () {
+      modal.classList.add("hidden");
+    };
+    modal.classList.remove("hidden");
 
-    // Logic to pick suggestions
+    if (upsellContent) {
+      upsellContent.scrollTop = 0;
+    }
+
+    // Build pool: drinks + snacks + popular items, shuffle, pick 6
+    const cartIds = window.cart.map((i) => i.product_id);
+    const drinks = window.allProducts.filter(
+      (p) => p.category_id == 6 || p.category_id == 7,
+    );
+    const snacks = window.allProducts.filter((p) => p.category_id == 5);
+    const others = window.allProducts.filter(
+      (p) =>
+        !cartIds.includes(p.product_id) &&
+        p.category_id != 6 &&
+        p.category_id != 7 &&
+        p.category_id != 5,
+    );
+
+    const pool = [...drinks, ...snacks, ...others]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 6);
+
     const suggestionsGrid = document.getElementById("upsell-suggestions-grid");
     suggestionsGrid.innerHTML = "";
-
-    // Pick 2 items from different categories (Drinks/Snacks)
-    const drinks = window.allProducts
-      .filter((p) => p.category_id == 6 || p.category_id == 7)
-      .slice(0, 4);
-    const snacks = window.allProducts
-      .filter((p) => p.category_id == 5)
-      .slice(0, 4);
-
-    // Shuffle and pick 2
-    const pool = [...drinks, ...snacks]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 2);
 
     pool.forEach((p) => {
       const card = document.createElement("div");
       card.className = "upsell-option-card";
+      card.id = "upsell-card-" + p.product_id;
       const name = p["name" + (lang === "EN" ? "_en" : "")] || p.name;
       const img = window.productImages[p.product_id] || "";
 
@@ -582,29 +717,41 @@ document.addEventListener("DOMContentLoaded", () => {
         <img src="${img}" alt="${name}">
         <h4>${name}</h4>
         <p>€${parseFloat(p.price).toFixed(2)}</p>
-        <button onclick="addUpsellAndClose(${p.product_id})">${lang === "EN" ? "Add" : "Voeg toe"}</button>
+        <button id="upsell-add-btn-${p.product_id}" onclick="addUpsellItem(${p.product_id})">${lang === "EN" ? "Add" : "Voeg toe"}</button>
       `;
       suggestionsGrid.appendChild(card);
     });
 
-    // Update labels
     document.getElementById("upsell-view-title").innerText =
       lang === "EN" ? "Nice to add?" : "Lekker voor erbij?";
+    document.getElementById("upsell-sub-title").innerText =
+      lang === "EN"
+        ? "Add something extra to your order"
+        : "Voeg nog iets toe aan je bestelling";
     document.getElementById("upsell-skip-btn").innerText =
-      lang === "EN" ? "No thanks, continue" : "Nee bedankt, verder gaan";
-  }
+      lang === "EN"
+        ? "No thanks, go to checkout \u2192"
+        : "Nee bedankt, ga nu afrekenen \u2192";
+  };
 
-  window.addUpsellAndClose = function (productId) {
+  window.addUpsellItem = function (productId) {
     const product = window.allProducts.find((p) => p.product_id == productId);
     if (product) {
       addToCart(product);
-      // Small delay for feedback
-      setTimeout(closeCustomizer, 300);
+      // Visual feedback on the button
+      const btn = document.getElementById("upsell-add-btn-" + productId);
+      if (btn) {
+        const lang = localStorage.getItem("kiosk_lang") || "NL";
+        btn.innerText = lang === "EN" ? "\u2713 Added!" : "\u2713 Toegevoegd!";
+        btn.style.background = "var(--color-green)";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+      }
     }
   };
 
   window.skipUpsell = function () {
-    closeCustomizer();
+    window.location.href = "checkout.php";
   };
 
   window.addToCart = function (product, extras = []) {

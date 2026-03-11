@@ -160,8 +160,12 @@
     </div>
 
     <div class="lang-toggle">
-        <button class="lang-btn active" id="lang-nl" onclick="setLang('NL')">NL</button>
-        <button class="lang-btn" id="lang-en" onclick="setLang('EN')">EN</button>
+        <button class="lang-btn active" id="lang-nl" onclick="setLang('NL')" aria-label="Nederlands">
+            <span class="lang-flag" aria-hidden="true">🇳🇱</span>
+        </button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('EN')" aria-label="English">
+            <span class="lang-flag" aria-hidden="true">🇬🇧</span>
+        </button>
     </div>
 
     <div class="overlay">

@@ -376,6 +376,22 @@ body {
   font-size: 0.95rem;
 }
 
+.lang-toggle .lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.lang-toggle .lang-btn .lang-flag {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.lang-toggle .lang-btn .lang-code {
+  display: none;
+}
+
 .lang-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;

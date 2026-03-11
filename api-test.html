@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiosk JOP - API Testing Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 8px 16px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #666;
+      }
+
+      .status.ready {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 18px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #5a6268;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #218838;
+      }
+
+      .btn-small {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .output-section {
+        grid-column: 1 / -1;
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .output-section h2 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      #console-output {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        height: 400px;
+        overflow-y: auto;
+        line-height: 1.5;
+      }
+
+      .console-log {
+        color: #d4d4d4;
+      }
+
+      .console-success {
+        color: #4ec9b0;
+      }
+
+      .console-error {
+        color: #f48771;
+      }
+
+      .console-warning {
+        color: #ce9178;
+      }
+
+      .console-info {
+        color: #9cdcfe;
+      }
+
+      .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      .results-table thead {
+        background: #f8f9fa;
+      }
+
+      .results-table th,
+      .results-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .results-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .badge-success {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .badge-error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .badge-info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .stat-box {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #667eea;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🍱 Kiosk JOP - API Testing Dashboard</h1>
+        <p style="color: #666; margin-bottom: 15px">
+          Interactive API Testing & Monitoring
+        </p>
+        <span class="status ready" id="status">Ready</span>
+      </header>
+
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-label">Total Tests</div>
+          <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Passed</div>
+          <div class="stat-value" style="color: #28a745" id="stat-passed">
+            0
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Failed</div>
+          <div class="stat-value" style="color: #dc3545" id="stat-failed">
+            0
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Success Rate</div>
+          <div class="stat-value" style="color: #667eea" id="stat-rate">0%</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>📦 Orders</h2>
+          <div class="button-group">
+            <button class="btn-primary" onclick="testCreateOrder()">
+              Create Order
+            </button>
+            <button class="btn-primary" onclick="testGetOrders()">
+              Get All Orders
+            </button>
+            <button class="btn-primary" onclick="testGetSingleOrder()">
+              Get Single Order
+            </button>
+            <button class="btn-primary" onclick="testUpdateOrder()">
+              Update Order
+            </button>
+            <button class="btn-danger" onclick="testDeleteOrder()">
+              Delete Order
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🛍️ Products</h2>
+          <div class="button-group">
+            <button class="btn-primary" onclick="testGetProducts()">
+              Get Products
+            </button>
+            <button class="btn-primary" onclick="testGetCategories()">
+              Get Categories
+            </button>
+            <button class="btn-primary" onclick="testGetProductsByCategory()">
+              Get Products by Category
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>⚙️ Tools</h2>
+          <div class="button-group">
+            <button class="btn-success" onclick="runFullTest()">
+              Run Full Test Suite
+            </button>
+            <button class="btn-secondary" onclick="clearConsole()">
+              Clear Console
+            </button>
+            <button class="btn-secondary" onclick="exportResults()">
+              Export Results
+            </button>
+            <button class="btn-secondary" onclick="showHelp()">
+              Help & Documentation
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-section">
+        <h2>📝 Console Output</h2>
+        <div id="console-output"></div>
+      </div>
+
+      <div class="output-section">
+        <h2>📊 Results</h2>
+        <table class="results-table" id="results-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Type</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody">
+            <tr>
+              <td colspan="3" style="text-align: center; color: #999">
+                No results yet. Run a test to see results.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="/kiosk-jop/assets/js/api-client.js"></script>
+    <script src="/kiosk-jop/assets/js/api-tester.js"></script>
+    <script>
+      const api = new KioskAPI();
+      let tester = new APITester(api);
+      let lastOrderId = null;
+
+      // Console output function
+      function log(message, type = "log") {
+        const console_output = document.getElementById("console-output");
+        const timestamp = new Date().toLocaleTimeString();
+        const line = document.createElement("div");
+        line.className = `console-${type}`;
+        line.textContent = `[${timestamp}] ${message}`;
+        console_output.appendChild(line);
+        console_output.scrollTop = console_output.scrollHeight;
+      }
+
+      function clearConsole() {
+        document.getElementById("console-output").innerHTML = "";
+        tester.clearResults();
+        updateStats();
+        log("Console cleared", "info");
+      }
+
+      function updateStats() {
+        const results = tester.getResults();
+        const total = results.length;
+        const passed = results.filter((r) => r.type === "success").length;
+        const failed = results.filter((r) => r.type === "error").length;
+        const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+        document.getElementById("stat-total").textContent = total;
+        document.getElementById("stat-passed").textContent = passed;
+        document.getElementById("stat-failed").textContent = failed;
+        document.getElementById("stat-rate").textContent = rate + "%";
+
+        // Update results table
+        const tbody = document.getElementById("results-tbody");
+        if (results.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="3" style="text-align: center; color: #999;">No results yet. Run a test to see results.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = results
+          .map(
+            (r) => `
+                <tr>
+                    <td>${r.timestamp}</td>
+                    <td><span class="badge badge-${r.type === "success" ? "success" : r.type === "error" ? "error" : "info"}">${r.type}</span></td>
+                    <td>${r.message}</td>
+                </tr>
+            `,
+          )
+          .join("");
+      }
+
+      // Wrap tester log to also update UI
+      const originalLog = tester.log.bind(tester);
+      tester.log = function (message, type = "info") {
+        originalLog(message, type);
+        const logType =
+          type === "success" ? "success" : type === "error" ? "error" : "info";
+        log(message, logType);
+        updateStats();
+      };
+
+      async function testCreateOrder() {
+        tester.log("Creating test order...", "info");
+        const result = await tester.testCreateOrder();
+        if (result) {
+          lastOrderId = result.order_id;
+        }
+        updateStats();
+      }
+
+      async function testGetOrders() {
+        tester.log("Fetching all orders...", "info");
+        await tester.testGetOrders();
+        updateStats();
+      }
+
+      async function testGetSingleOrder() {
+        if (!lastOrderId) {
+          tester.log("No order ID. Create an order first.", "warning");
+          return;
+        }
+        tester.log(`Fetching order #${lastOrderId}...`, "info");
+        await tester.testGetOrder(lastOrderId);
+        updateStats();
+      }
+
+      async function testUpdateOrder() {
+        if (!lastOrderId) {
+          tester.log("No order ID. Create an order first.", "warning");
+          return;
+        }
+        tester.log(`Updating order #${lastOrderId}...`, "info");
+        await tester.testUpdateOrder(lastOrderId);
+        updateStats();
+      }
+
+      async function testDeleteOrder() {
+        if (!lastOrderId) {
+          tester.log("No order ID. Create an order first.", "warning");
+          return;
+        }
+        tester.log(`Deleting order #${lastOrderId}...`, "info");
+        try {
+          const response = await api.deleteOrder(lastOrderId);
+          if (response.success) {
+            tester.log(`✓ Order #${lastOrderId} deleted`, "success");
+            lastOrderId = null;
+          } else {
+            tester.log(`✗ Failed to delete: ${response.message}`, "error");
+          }
+        } catch (error) {
+          tester.log(`✗ Error: ${error.message}`, "error");
+        }
+        updateStats();
+      }
+
+      async function testGetProducts() {
+        tester.log("Fetching products...", "info");
+        await tester.testGetProducts();
+        updateStats();
+      }
+
+      async function testGetCategories() {
+        tester.log("Fetching categories...", "info");
+        await tester.testGetCategories();
+        updateStats();
+      }
+
+      async function testGetProductsByCategory() {
+        tester.log("Fetching products by category (ID: 1)...", "info");
+        try {
+          const response = await api.getProductsByCategory(1);
+          if (response.success) {
+            tester.log(
+              `✓ Retrieved ${response.data.count} products in category 1`,
+              "success",
+            );
+          } else {
+            tester.log(`✗ Failed: ${response.message}`, "error");
+          }
+        } catch (error) {
+          tester.log(`✗ Error: ${error.message}`, "error");
+        }
+        updateStats();
+      }
+
+      async function runFullTest() {
+        tester.clearResults();
+        clearConsole();
+        tester.log("=== Starting Full API Test Suite ===", "info");
+        const result = await tester.runFullTest();
+        updateStats();
+        if (result.success) {
+          tester.log("=== All tests passed! ===", "success");
+        } else {
+          tester.log(
+            `=== Some tests failed (${result.failed} failures) ===`,
+            "error",
+          );
+        }
+      }
+
+      function exportResults() {
+        const json = tester.exportResults("json");
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `api-test-results-${new Date().getTime()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        log("Results exported as JSON", "success");
+      }
+
+      function showHelp() {
+        alert(`
+Kiosk JOP API Testing Dashboard - Help
+
+ORDERS SECTION:
+- Create Order: Creates a new order with test items
+- Get All Orders: Retrieves all orders from database
+- Get Single Order: Retrieves the last created order
+- Update Order: Updates the status of last created order
+- Delete Order: Deletes the last created order
+
+PRODUCTS SECTION:
+- Get Products: Lists all available products
+- Get Categories: Lists all product categories
+- Get Products by Category: Filters products by category ID
+
+TOOLS SECTION:
+- Run Full Test Suite: Runs all tests automatically
+- Clear Console: Clears the console output
+- Export Results: Downloads results as JSON file
+
+CONSOLE OUTPUT:
+Green = Success
+Red = Error
+Blue = Info
+Orange = Warning
+
+Use the Results table below to track all test activities.
+            `);
+      }
+
+      // Initial load
+      log("API Testing Dashboard loaded", "success");
+      log("API Base URL: " + api.baseUrl, "info");
+      updateStats();
+    </script>
+  </body>
+</html>

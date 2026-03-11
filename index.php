@@ -80,8 +80,12 @@ if ($result->num_rows > 0) {
     <div class="screensaver" id="screensaver" style="background: transparent;">
 
         <div class="lang-toggle">
-            <button class="lang-btn active" onclick="event.stopPropagation(); setLang('NL')">NL</button>
-            <button class="lang-btn" onclick="event.stopPropagation(); setLang('EN')">EN</button>
+            <button class="lang-btn active" data-lang="NL" onclick="event.stopPropagation(); setLang('NL')" aria-label="Nederlands">
+                <span class="lang-flag" aria-hidden="true">🇳🇱</span>
+            </button>
+            <button class="lang-btn" data-lang="EN" onclick="event.stopPropagation(); setLang('EN')" aria-label="English">
+                <span class="lang-flag" aria-hidden="true">🇬🇧</span>
+            </button>
         </div>
 
         <div class="overlay">
@@ -133,9 +137,8 @@ if ($result->num_rows > 0) {
     <script>
         function setLang(lang) {
             localStorage.setItem('kiosk_lang', lang);
-            document.querySelectorAll('.lang-btn').forEach(b => {
-                b.classList.remove('active');
-                if (b.innerText === lang) b.classList.add('active');
+            document.querySelectorAll('.lang-toggle .lang-btn').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-lang') === lang);
             });
 
             const texts = {
