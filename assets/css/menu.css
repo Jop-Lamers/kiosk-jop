@@ -1413,7 +1413,7 @@
   border-top: 3px solid var(--color-orange);
   background: white;
   padding: 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
   z-index: 120;
 }
 
@@ -1968,11 +1968,7 @@
    ============================================================ */
 
 .menu-mode {
-  background: linear-gradient(
-    180deg,
-    rgba(var(--dark-blue-rgb), 0.03) 0%,
-    rgba(var(--light-orange-rgb), 0.06) 100%
-  );
+  background: #f7f7f7;
 }
 
 .sidebar {
@@ -2062,11 +2058,7 @@
 }
 
 .img-container {
-  background: linear-gradient(
-    180deg,
-    rgba(var(--light-green-rgb), 0.2) 0%,
-    #ffffff 70%
-  );
+  background: #ffffff;
 }
 
 .desc {
@@ -2075,7 +2067,7 @@
 
 .order-panel {
   background: rgba(255, 255, 255, 0.97);
-  box-shadow: -8px 0 24px rgba(var(--dark-blue-rgb), 0.1);
+  box-shadow: none;
 }
 
 .cart-item {
@@ -2085,16 +2077,12 @@
 }
 
 .checkout-btn {
-  background: linear-gradient(
-    180deg,
-    var(--color-orange) 0%,
-    var(--color-light-orange) 100%
-  );
-  box-shadow: 0 10px 20px rgba(var(--orange-rgb), 0.26);
+  background: var(--color-orange);
+  box-shadow: none;
 }
 
 .checkout-btn:not(:disabled):hover {
-  box-shadow: 0 12px 24px rgba(var(--orange-rgb), 0.34);
+  box-shadow: none;
 }
 
 @media (max-width: 768px) {
