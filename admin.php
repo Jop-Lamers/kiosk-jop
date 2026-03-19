@@ -41,7 +41,7 @@ $recent_result = $conn->query($recent_sql);
     </style>
 </head>
 <body style="background: #f4f4f4; color: #333;">
-
+c
     <div class="admin-container">
         <h1>Dashboard & Analytics</h1>
         
